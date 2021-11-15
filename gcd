@@ -1,15 +1,17 @@
 class Rational(n: Int, d: Int) {
   require(d != 0)
-  def this(n:Int) = this(n,1)
+  def this(n: Int) = this(n,1)
+  def + (that: Rational): Rational = new Rational(number*that.denom+that.number*denom, denom*that.denom)
+  def * (that: Rational): Rational = new Rational(number*that.number,denom*that.denom)
   private val g:Int = gcd(n.abs, d.abs)
   val number: Int = n/g
   val denom: Int = d/g
-  def add(that: Rational):Rational = {
-    new Rational(number*that.denom+that.number*denom, denom*that.denom)
-  }
   override def toString = s"$number/$denom"
   def gcd(a: Int, b: Int):Int ={
     if (b==0) a else gcd(b, a % b)
   }
 }
-new Rational(26, 66)
+val x = new Rational(12, 64)
+val y = new Rational(9, 33)
+x + y
+x * y
