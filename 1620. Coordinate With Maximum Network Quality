@@ -1,0 +1,37 @@
+// https://leetcode.com/problems/coordinate-with-maximum-network-quality/
+import scala.collection.mutable
+import scala.math.{abs, pow, sqrt}
+
+val towers = Array(Array(32,36,27), Array(17,22,43), Array(8,11,41),
+  Array(46,28,7), Array(22,4,35), Array(41,8,33), Array(32,29,4), Array(44,32,16),
+  Array(33,20,16), Array(3,38,35), Array(17,47,23), Array(33,0,29), Array(29,19,6),
+  Array(4,50,46), Array(19,47,6), Array(48,6,41), Array(20,26,35))
+val radius = 4
+var q: Int = 0
+
+def getDistance(t: Array[Int], point: (Int,Int)): Double = {
+  sqrt(pow(t(0)-point._1, 2)+pow(t(1)-point._2, 2))
+}
+
+def getQuality(pointQuality: Int, d: Double): Int = {
+  if (pointQuality == 0 || d > radius) 0 else (pointQuality / (1 + d)).toInt
+}
+
+val minX = towers.map(x => x.head).min
+val maxX = towers.map(x => x.head).max
+val minY = towers.map(x => x.tail.head).min
+val maxY = towers.map(x => x.tail.head).max
+val maxQ = Array(0)
+var table = mutable.Map.empty[(Int,Int), Int]
+
+for (i <- minX to maxX if i >= 0; j <- minY to maxY if j >= 0) {
+  q = 0
+  for (k <-towers) {
+    q += getQuality(k.last, getDistance(k,(i,j)))
+  }
+  if (q >= maxQ(0)) {maxQ(0) = q; table += ((i,j) -> q)}
+}
+table
+val res = table.collect{case ((key1, key2), max) if max == maxQ.head => ((key1, key2), max)}
+  .keys.min
+if (maxQ.head == 0) Array(0,0) else Array(res._1,res._2)
