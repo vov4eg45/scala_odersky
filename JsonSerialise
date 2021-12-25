@@ -1,0 +1,62 @@
+case class Customer(email: String, name: String)
+case class Item(id: Int, description: String)
+case class Order(customer: Customer, items: List[Item])
+val customer = Customer("alice@mail.com", "Alice")
+val order = Order(customer,
+  List(
+  Item(1, "first item"),
+  Item(2, "second item"),
+))
+
+trait Converter[T] {
+  def toJson(value: T): String
+}
+object Converter {
+  def toJson[T](value: T)(implicit converter: Converter[T]): String = {
+    converter.toJson(value)
+  }
+  def apply[T](implicit converter: Converter[T]) = converter
+}
+
+trait Json {
+  def stringify: String
+  override def toString: String = stringify
+}
+trait JsonNode {
+  def stringify: String
+}
+case class JsonObject(value: Map[String, Json]) extends Json {
+  override def stringify: String = value.map{case (a,b) => s""""$a"""" + ":" + s"$b"}.mkString("{", ",", "}")
+  //override def toString: String = value.map{case (a,b) => s""""$a"""" + ":" + s"$b"}.mkString("{", ",", "}")
+}
+case class JsonArray(value: List[Json]) extends Json with JsonNode {
+  override def stringify: String = s"[${value.mkString(",")}]"
+  //override def toString: String = s"[${value.mkString(",")}]"
+}
+case class JsonString(value: String) extends Json with JsonNode {
+  override def stringify: String = s""""$value""""
+  //override def toString: String = s""""$value""""
+}
+case class JsonInteger(value: Int) extends Json with JsonNode {
+  override def stringify: String = s"$value"
+  //override def toString: String = s"$value"
+}
+implicit object JsonConventer extends Converter[Order] {
+  override def toJson(value: Order): String = {
+    JsonObject(Map(
+      "customer" ->
+        JsonObject(Map(
+          "email" -> JsonString(customer.email),
+          "name" -> JsonString(customer.name))),
+      "items" ->
+        JsonArray(order.items.map(a => JsonObject(Map(
+          "id" -> JsonInteger(a.id),
+          "description" -> JsonString(a.description))))))
+    ).stringify
+  }
+}
+implicit class RichOrder(value: Order) extends Order(customer, order.items) {
+  implicit def toJson: String = Converter.toJson(value)
+}
+
+println(order.toJson)
